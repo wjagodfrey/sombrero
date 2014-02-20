@@ -45,10 +45,10 @@
   images = [
     {
       name: 'sprites',
-      source: '/img/sprites.png'
+      source: './img/sprites.png'
     }, {
       name: 'sprites2',
-      source: '/img/sprites2.png'
+      source: './img/sprites2.png'
     }
   ];
 
