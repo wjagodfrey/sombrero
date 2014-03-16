@@ -6,12 +6,10 @@
 # game config
 scale = 2
 
+gravity = 0.04
+
 # preloading
 images = [
-  {
-    name   : 'sprites'
-    source : './img/sprites.png'
-  }
   {
     name   : 'sprites2'
     source : './img/sprites2.png'

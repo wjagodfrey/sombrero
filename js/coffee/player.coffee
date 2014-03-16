@@ -12,61 +12,54 @@ entities.push @p = player =
 
   shadow    : true
   hit       : true
-  
+
   direction : 'right'
-  action    : 'walk'
-  
+  action    : 'stand'
+
   force     : 0.5
   velocity:
     x : 0
+    y : 0
     z : 0
-
-  light : newLight().set
-    on        : false
-    y         : 20
-    radius    : 0
-    fade      : 200
-    intensity : 1
-    color     : '255,100,10'
 
   sprites:
     stand:
       left: [
-          ['sprites2', 8, 1, 14, 24]
+          ['sprites2', 8, 1, 14, 23]
         ]
       right: [
-          ['sprites2', 22, 1, 28, 24]
+          ['sprites2', 22, 1, 28, 23]
         ]
       up: [
-          ['sprites2', 1, 1, 7, 25]
+          ['sprites2', 1, 1, 7, 23]
         ]
       down: [
-          ['sprites2', 15, 1, 21, 24]
+          ['sprites2', 15, 1, 21, 23]
         ]
     walk:
       left: [
-          ['sprites2', 8, 27, 14, 50]
-          ['sprites2', 8, 53, 14, 76]
-          ['sprites2', 8, 79, 14, 102]
-          ['sprites2', 8, 105, 14, 128]
+          ['sprites2', 8, 30, 14, 52]
+          ['sprites2', 8, 59, 14, 81]
+          ['sprites2', 8, 88, 14, 110]
+          ['sprites2', 8, 117, 14, 139]
         ]
       right: [
-          ['sprites2', 22, 27, 28, 50]
-          ['sprites2', 22, 53, 28, 76]
-          ['sprites2', 22, 79, 28, 102]
-          ['sprites2', 22, 105, 28, 128]
+          ['sprites2', 22, 30, 28, 52]
+          ['sprites2', 22, 59, 28, 81]
+          ['sprites2', 22, 88, 28, 110]
+          ['sprites2', 22, 117, 28, 139]
         ]
       up: [
-          ['sprites2', 1, 27, 7, 50]
-          ['sprites2', 1, 53, 7, 76]
-          ['sprites2', 1, 79, 7, 102]
-          ['sprites2', 1, 105, 7, 128]
+          ['sprites2', 1, 30, 7, 52]
+          ['sprites2', 1, 59, 7, 81]
+          ['sprites2', 1, 88, 7, 110]
+          ['sprites2', 1, 117, 7, 139]
         ]
       down: [
-          ['sprites2', 15, 27, 21, 50]
-          ['sprites2', 15, 53, 21, 76]
-          ['sprites2', 15, 79, 21, 102]
-          ['sprites2', 15, 105, 21, 128]
+          ['sprites2', 15, 30, 21, 52]
+          ['sprites2', 15, 59, 21, 81]
+          ['sprites2', 15, 88, 21, 110]
+          ['sprites2', 15, 117, 21, 139]
         ]
 
   currentFrame: undefined
@@ -75,11 +68,6 @@ entities.push @p = player =
   frameSpeed: 5
 
   keys:
-    f:
-      pressed   : false
-      action    : (key) ->
-        if @pressed
-          player.light.toggle()
     left:
       pressed   : false
       action    : (key) ->
@@ -107,48 +95,63 @@ entities.push @p = player =
       @move direction.other
     return
 
+  onHit: (hit) ->
+    o = hit.other
+    if o.y+o.height < @y+@height/4
+      @y = o.y+o.height
+      updateEdges @
+    else #fix collision
+
+      # absX = Math.abs(@velocity.x)
+      # absZ = Math.abs(@velocity.z)
+
+      # if absX >= absY and absX >= absZ
+      #   direction = if @velocity.x > 0 then 1 else -1
+      #   # @velocity.x = 0
+      #   @x = (o.x-((o.width)/2*direction))-(@width/2)*direction
+      # if absY >= absX and absY >= absZ
+      #   direction = if @velocity.y > 0 then 1 else -1
+      #   @velocity.y = 0
+      # if absZ >= absY and absZ >= absX
+      #   if @velocity.z > 0 # hitting the back
+      #     depth = -@depth-2
+      #   else # hitting the front
+      #     depth = o.depth+2
+      #   # @velocity.z = 0
+      #  @z = o.z+depth
+
   preUpdate: ->
     # CYCLE FRAMES
+    @velocity.y -= gravity
     action = @sprites[@action]?[@direction]
-
     # reset frame to 0 if doesn't exist
     if !action[@frame]? then @frame = 0
-
     # save current frame
     @currentFrame = action[@frame]
-
     # save new width and height
     @width  = (@currentFrame[3] - @currentFrame[1])*scale
     @height = (@currentFrame[4] - @currentFrame[2])*scale
-
     # change frame
     if @frameTimer++ >= (@currentFrame[5] or @frameSpeed)
       @frameTimer = 0
       @frame++
 
-
   update: ->
     @x += @velocity.x*scale
+    @y += @velocity.y*scale
     @z += @velocity.z*scale
+
+    if @y < 0
+      @y = 0
+
     @direction = if @velocity.z > 0 then 'down' else if @velocity.z < 0 then 'up' else if @velocity.x > 0 then 'right' else if @velocity.x < 0 then 'left' else @direction
     @action = if !@velocity.x and !@velocity.z then 'stand' else 'walk'
-
-    @light.set
-      x: @left + if @direction is 'right' or @direction is 'down'
-                @width+3
-              else -3
-      z: @drawBottom + if @direction is 'up' or @direction is 'right'
-                -3-@depth/2
-              else 3+@depth/2
-
-
     return
 
   draw: (ctx) ->
     if loaded
       frm = @currentFrame
       if frm?
-
         ctx.save()
         .translate(@left, @drawTop)
         .rotate(@rotation)
@@ -156,11 +159,11 @@ entities.push @p = player =
                     frm[1]*scale,                     # source x
                     frm[2]*scale,                     # source y
                     @width,                           # source width
-                    @height,                          # source height
+                    @height+(4*scale),                # source height
                     0,                                # draw x
                     0,                                # draw y
                     @width,                           # draw width
-                    @height                           # draw height
+                    @height+(4*scale)                 # draw height
         .restore()
 
 

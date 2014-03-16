@@ -2,9 +2,9 @@
 propSprites = [
   ['sprites2', 31, 1, 40, 31, 7, 'cactus']
   ['sprites2', 41, 1, 50, 41, 8, 'big cactus']
-  ['sprites2', 33, 34, 40, 40, 7, 'skull']
+  ['sprites2', 33, 37, 41, 42, 7, 'skull']
 ]
-propCount = 5 * (window.innerHeight * window.innerWidth / 100000) / scale
+propCount = 20 * (window.innerHeight * window.innerWidth / 100000) / scale
 
 while propCount-- > 0
   sprite = propSprites[Math.floor Math.random()*propSprites.length]
@@ -22,7 +22,7 @@ while propCount-- > 0
     rotation : 0
     sprite   : sprite
 
-    draw: (ctx) ->
+    draw: (ctx, delta, time, index) ->
       if loaded
         frm = @sprite
         ctx.save()
@@ -32,22 +32,24 @@ while propCount-- > 0
                     frm[1]*scale,                     # source x
                     frm[2]*scale,                     # source y
                     @width,                           # source width
-                    @height,                          # source height
+                    @height+(4*scale),                # source height
                     0,                                # draw x
                     0,                                # draw y
                     @width,                           # draw width
-                    @height                           # draw height
+                    @height+(4*scale)                 # draw height
         .restore()
+
+
 
         # dev meshes
         if window.showDevMeshes
           ctx.save()
           # back
           .strokeStyle 'cyan'
-          .strokeRect @left, @drawTop-@depth/2, @width, @height
+          .strokeRect @left, @drawTop, @width, @height
           # front
           .strokeStyle 'red'
-          .strokeRect @left, @drawTop+@depth/2, @width, @height
+          .strokeRect @left, @drawTop+@depth, @width, @height
 
           # center point
           .fillStyle 'red'

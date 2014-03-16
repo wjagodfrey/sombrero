@@ -8,7 +8,7 @@ entities.push display =
   z         : 10
   draw: (ctx, delta, time) ->
     if @updateCount is 0
-      text = "Change 'showDevMeshes' in the console. Press 'f'   ||   #{entities.length} entities | x: #{player.x}, z: #{player.z} | d#{delta}"
+      text = "#{entities.length} entities | x: #{player.x}, z: #{player.z} , y: #{player.y} | d#{delta}"
       @render
       .clear()
       .save()
@@ -24,13 +24,6 @@ entities.push display =
     .drawImage(@render.canvas, 0, 0)
     .restore()
 
-@l = light = newLight().set
-  on: true
-  radius: 40
-  fade: 40
-  x: window.innerWidth/2+20
-  z: window.innerHeight/2
-  y: 150
 iii = 0
 
 gameCanvas = cq().framework(
@@ -40,9 +33,6 @@ gameCanvas = cq().framework(
     return
 
   onmousemove: (x, z) ->
-    light.set
-      x: x
-      y: light.z-z
 
   onkeydown: (key) ->
     if player.keys[key]? and !player.keys[key]?.pressed
@@ -57,28 +47,27 @@ gameCanvas = cq().framework(
     return
 
   onrender: (delta, time) ->
-    # if iii < 2
-    @clear('#f8e8c3')
+    # if iii < 50
+      if loaded then iii++
+      @clear('#f8e8c3')
 
-    # update entities
-    for i, entity of entities
-      entity.preUpdate? parseInt(i), delta, time
-      updateEdges entity
-      checkHit entity
-      entity.update? parseInt(i), delta, time
-      shade.updateRender entity, parseInt(i), delta, time
+      # update entities
+      for i, entity of entities
+        i = parseInt(i)
+        entity.preUpdate? i, delta, time
+        updateEdges entity
+        checkHit entity, i, delta, time
+        entity.update? i, delta, time
 
-    # adjust draw order
-    entities.sort (a,b) ->
-      if !a.height? and !b.height? then return 0
-      else if !a.height? then return 1
-      else if !b.height? then return -1
-      (a.z) - (b.z)
+      # adjust draw order
+      entities.sort (a,b) ->
+        if !a.height? and !b.height? then return 0
+        else if !a.height? then return 1
+        else if !b.height? then return -1
+        (a.z) - (b.z)
 
-    # draw entities
-    for i, entity of entities
-      # if entity.type in ['shade','light']
+      # draw entities
+      for i, entity of entities
         entity.draw?(@, delta, time, parseInt i)
-    iii++
-    return
+      return
 ).appendTo 'body'
